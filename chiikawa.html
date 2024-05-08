@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>一番赏</title>
+    <style>
+        div{ 
+            margin:20px;
+            text-align:center;
+        }
+ 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        #container {
+            position: relative;
+            width: 356px;
+            height: 358px;
+        }
+        canvas {
+	position: absolute;
+	top: 0;
+	left: -365px;
+        }
+    </style>
+</head>
+<body>
+    <div> 
+        选择抽奖范围
+        <select id="mySelect" onchange="loadImages()"> <!-- 添加 onchange 事件 -->
+            <option value="1">1号--44号</option> <!-- 更改 value 以匹配图像名称 -->
+            <option value="2">45号-88号</option>
+        </select>
+    <div>
+ 
+    <div id="container">
+        <canvas id="bottomCanvas" width="1240" height="1754"></canvas> <!-- 底层Canvas -->
+        <canvas id="topCanvas" width="1240" height="1754"></canvas> <!-- 上层Canvas -->
+    </div>
+ 
+    <script>
+        function loadImages() {
+            var selectElement = document.getElementById('mySelect');
+            var selectedValue = selectElement.options[selectElement.selectedIndex].value;
+ 
+            var bottomCanvas = document.getElementById('bottomCanvas');
+            var topCanvas = document.getElementById('topCanvas');
+            var bottomCtx = bottomCanvas.getContext('2d');
+            var topCtx = topCanvas.getContext('2d');
+ 
+            // 清除画布
+            bottomCtx.clearRect(0, 0, bottomCanvas.width, bottomCanvas.height);
+            topCtx.clearRect(0, 0, topCanvas.width, topCanvas.height);
+ 
+            // 加载底层图片
+            var bottomImage = new Image();
+            bottomImage.src = 'img/bottom' + selectedValue + '.jpg';
+            bottomImage.onload = function() {
+                bottomCtx.drawImage(bottomImage, 0, 0, bottomCanvas.width, bottomCanvas.height);
+            };
+ 
+            // 重新加载并绘制上层图片
+            var topImage = new Image();
+            topImage.src = 'img/top' + selectedValue + '.jpg'; // 确保这里的路径正确匹配你的图片路径和命名
+            topImage.onload = function() {
+                topCtx.globalCompositeOperation = 'source-over'; // 重置合成操作为默认值
+                topCtx.drawImage(topImage, 0, 0, topCanvas.width, topCanvas.height);
+                // 确保刮刮效果重新应用
+                addScratchEffect(topCanvas, topCtx);
+            };
+        }
+ 
+        function addScratchEffect(canvas, ctx) {
+            var isDown = false;
+            // 移除之前可能添加的事件监听器
+            canvas.onmousedown = null;
+            canvas.onmouseup = null;
+            canvas.onmousemove = null;
+ 
+            // 鼠标按下事件
+            canvas.onmousedown = function() {
+                isDown = true;
+                ctx.globalCompositeOperation = 'destination-out'; // 设置合成操作以实现刮效果
+            };
+ 
+            // 鼠标松开事件
+            canvas.onmouseup = function() {
+                isDown = false;
+            };
+ 
+            // 鼠标移动事件
+            canvas.onmousemove = function(event) {
+                if (!isDown) return;
+                var x = event.offsetX;
+                var y = event.offsetY;
+                // 绘制擦除效果
+                ctx.beginPath();
+                ctx.arc(x, y, 20, 0, Math.PI * 2); // 使用圆形笔触
+                ctx.fill();
+            };
+        }
+ 
+        // 页面加载完毕后初始化画布
+        document.addEventListener('DOMContentLoaded', function() {
+            loadImages(); // 页面加载时也加载图片
+        });
+ 
+    </script>
+</body>
+</html>
